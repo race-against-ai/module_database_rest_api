@@ -4,23 +4,16 @@ from datetime import date
 import psycopg2
 
 class ConventionNotFound(Exception):
-    def __init__(self, *args: object) -> None:
-        self.args = args
-        super().__init__(f"Driver not found: {args}")
-
-@dataclass
-class Convention:
-    convention_id: int
-    name: str
-    location: str
-    created: date
+    def __init__(self, con_id) -> None:
+        self.args = con_id
+        super().__init__(f"Driver not found: {self.args}")
 
 def post_convention(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         convention_name: str, 
         convention_location: str
-        ) -> Convention:
+        ) -> dict:
     try:    
 
         sql_query = ""
@@ -36,12 +29,12 @@ def post_convention(
         convention_id, convention_name, convention_location, convention_created = cursor.fetchone()
         connection.commit()
 
-        return Convention(
-            convention_id=convention_id,
-            name=convention_name,
-            location=convention_location,
-            created=convention_created,
-        )
+        return {
+            "convention_id": convention_id,
+            "name": convention_name,
+            "location": convention_location,
+            "created": convention_created,
+        }
     
 
     except psycopg2.Error as e:
@@ -52,7 +45,7 @@ def get_convention(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         convention_id: int
-        ) -> Convention:
+        ) -> dict:
     try:
         sql_query = "SELECT * FROM conventions WHERE id = %s"
         cursor.execute(sql_query, (convention_id,))
@@ -62,12 +55,12 @@ def get_convention(
         else:
             connection.commit()
 
-            return Convention(
-                convention_id=convention_id,
-                name=convention_name,
-                location=convention_location,
-                created=convention_created,
-            )
+            return {
+                "convention_id": convention_id,
+                "name": convention_name,
+                "location": convention_location,
+                "created": convention_created,
+            }
     except psycopg2.Error as e:
         connection.rollback()
         raise e
@@ -75,75 +68,67 @@ def get_convention(
 def get_all_conventions(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor
-        ) -> Convention:
+        ) -> dict:
     try:
         sql_query = "SELECT * FROM conventions"
         cursor.execute(sql_query)
         conventions = []
         for convention_id, convention_name, convention_location, convention_created in cursor.fetchall():
-            conventions.append(Convention(
-                convention_id=convention_id,
-                name=convention_name,
-                location=convention_location,
-                created=convention_created,
-            ))
+            conventions.append({
+                "convention_id": convention_id,
+                "name": convention_name,
+                "location": convention_location,
+                "created": convention_created,
+            })
         connection.commit()
         return conventions
     except psycopg2.Error as e:
         connection.rollback()
         raise e
 
-def update_convention_name(
+def update_convention(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         convention_id: int,
-        convention_name: str
-        ) -> Convention:
+        values: dict
+        ) -> dict:
+    if not values:
+        raise ValueError("No valid values to update.")
+
     try:
         get_convention(connection, cursor, convention_id)
+        key_list = list(values.keys())
         try:
-            sql_query = "UPDATE conventions SET name = %s WHERE id = %s RETURNING *"
-            cursor.execute(sql_query, (convention_name, convention_id))
+            if "name" in key_list and "location" in key_list:
+                sql_query = "UPDATE conventions SET name = %s, location = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (values["name"], values["location"], convention_id))
+            
+            elif "name" in key_list:
+                sql_query = "UPDATE conventions SET name = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (values["name"], convention_id))
+            
+            elif "location" in key_list:
+                sql_query = "UPDATE conventions SET location = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (values["location"], convention_id))
+
+            else:
+                raise ValueError("No valid values to update.")
+            
             convention_id, convention_name, convention_location, convention_created = cursor.fetchone()
             connection.commit()
+            
+            return {
+                "convention_id": convention_id,
+                "name": convention_name,
+                "location": convention_location,
+                "created": convention_created,
+            }
 
-            return Convention(
-                convention_id=convention_id,
-                name=convention_name,
-                location=convention_location,
-                created=convention_created,
-            )
         except psycopg2.Error as e:
             connection.rollback()
             raise e
     except ConventionNotFound as e:
-        raise e
-
-def update_convention_location(
-        connection: psycopg2.extensions.connection, 
-        cursor: psycopg2.extensions.cursor,
-        convention_id: int,
-        convention_location: str
-        ) -> Convention:
-    try:
-        get_convention(connection, cursor, convention_id)
-        try:
-            sql_query = "UPDATE conventions SET location = %s WHERE id = %s RETURNING *"
-            cursor.execute(sql_query, (convention_location, convention_id))
-            convention_id, convention_name, convention_location, convention_created = cursor.fetchone()
-            connection.commit()
-
-            return Convention(
-                convention_id=convention_id,
-                name=convention_name,
-                location=convention_location,
-                created=convention_created,
-            )
-        except psycopg2.Error as e:
-            connection.rollback()
-            raise e
-    except ConventionNotFound as e:
-        raise e
+        raise e(convention_id)
 
 def delete_convention(
         connection: psycopg2.extensions.connection, 
@@ -161,5 +146,9 @@ def delete_convention(
         except psycopg2.Error as e:
             connection.rollback()
             raise e
+        
     except ConventionNotFound as e:
+        raise e(convention_id)
+
+    except Exception as e:
         raise e

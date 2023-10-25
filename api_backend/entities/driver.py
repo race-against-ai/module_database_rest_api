@@ -4,23 +4,18 @@ from datetime import date
 import psycopg2
 
 class DriverNotFound(Exception):
-    def __init__(self, *args: object) -> None:
-        self.args = args
-        super().__init__(f"Driver not found: {args}")
+    def __init__(self, driver_id: str) -> None:
+        self.id = driver_id
+        super().__init__(f"Driver not found with ID: {driver_id}")
 
-@dataclass
-class Driver:
-    driver_id: int
-    name: str
-    email: str | None
-    created: date
+
 
 def post_driver(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         driver_name: str, 
         driver_email: str = None
-        ) -> Driver:
+        ) -> dict:
     try:    
 
         sql_query = ""
@@ -36,12 +31,12 @@ def post_driver(
         driver_id, driver_name, driver_email, driver_created = cursor.fetchone()
         connection.commit()
 
-        return Driver(
-            driver_id=driver_id,
-            name=driver_name,
-            email=driver_email,
-            created=driver_created,
-        )
+        return {
+            "driver_id": driver_id,
+            "name": driver_name,
+            "email": driver_email,
+            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+        }
     
 
     except psycopg2.Error as e:
@@ -52,24 +47,25 @@ def get_driver(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         driver_id: int
-        ) -> Driver:
+        ) -> dict:
     try:
         sql_query = "SELECT * FROM drivers WHERE id = %s"
         cursor.execute(sql_query, (driver_id,))
-        driver_id, driver_name, driver_email, driver_created = cursor.fetchone()
+        try:
+            driver_id, driver_name, driver_email, driver_created = cursor.fetchone()
 
-        if driver_id is None:
+        except TypeError:
             raise DriverNotFound(driver_id)
         
         else:
             connection.commit()
 
-            return Driver(
-                driver_id=driver_id,
-                name=driver_name,
-                email=driver_email,
-                created=driver_created,
-            )
+            return {
+            "driver_id": driver_id,
+            "name": driver_name,
+            "email": driver_email,
+            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+        }
     
     except psycopg2.Error as e:
         connection.rollback()
@@ -78,75 +74,73 @@ def get_driver(
 def get_all_drivers(
         connection: psycopg2.extensions.connection,
         cursor: psycopg2.extensions.cursor
-        ) -> Driver:
+        ) -> list:
     try: 
         sql_query = "SELECT * FROM drivers"
         cursor.execute(sql_query)
         drivers = []
         for driver_id, driver_name, driver_email, driver_created in cursor.fetchall():
-            drivers.append(Driver(
-                driver_id=driver_id,
-                name=driver_name,
-                email=driver_email,
-                created=driver_created,
-            ))
+            drivers.append({
+            "driver_id": driver_id,
+            "name": driver_name,
+            "email": driver_email,
+            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+        })
         connection.commit()
         return drivers
+    
     except psycopg2.Error as e:
         connection.rollback()
         raise e
 
-def update_driver_email(
+def update_driver(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
-        driver_id: int,
-        driver_email: str
-        ) -> Driver:
+        driver_id: str,
+        values: dict
+        ) -> dict:
+    if not values:
+        raise ValueError("No valid values to update.")
     try:
         get_driver(connection, cursor, driver_id)
         try:
-            sql_query = "UPDATE drivers SET email = %s WHERE id = %s RETURNING *"
-            cursor.execute(sql_query, (driver_email, driver_id))
+            if "email" in values.keys() and "name" in values.keys():
+                driver_email = values["email"]
+                driver_name = values["name"]
+                sql_query = "UPDATE drivers SET email = %s, name = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (driver_email, driver_name, driver_id))
+
+
+            elif "email" in values.keys():
+                driver_email = values["email"]
+                sql_query = "UPDATE drivers SET email = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (driver_email, driver_id))
+
+            
+            elif "name" in values.keys():
+                driver_name = values["name"]
+                sql_query = "UPDATE drivers SET name = %s WHERE id = %s RETURNING *"
+                cursor.execute(sql_query, (driver_name, driver_id))
+
+
+            else:
+                raise ValueError("No valid values to update.")
+
+
             driver_id, driver_name, driver_email, driver_created = cursor.fetchone()
             connection.commit()
 
-            return Driver(
-                driver_id=driver_id,
-                name=driver_name,
-                email=driver_email,
-                created=driver_created,
-            )
+            return {
+                "driver_id": driver_id,
+                "name": driver_name,
+                "email": driver_email,
+                "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+            }
         
         except psycopg2.Error as e:
             connection.rollback()
             raise e
-    except DriverNotFound:
-        raise DriverNotFound(driver_id)
-
-def update_driver_name(
-        connection: psycopg2.extensions.connection, 
-        cursor: psycopg2.extensions.cursor,
-        driver_id: int,
-        driver_name: str
-        ) -> Driver:
-    try:
-        get_driver(connection, cursor, driver_id)
-        try:
-            sql_query = "UPDATE drivers SET name = %s WHERE id = %s RETURNING *"
-            cursor.execute(sql_query, (driver_name, driver_id))
-            driver_id, driver_name, driver_email, driver_created = cursor.fetchone()
-            connection.commit()
-
-            return Driver(
-                driver_id=driver_id,
-                name=driver_name,
-                email=driver_email,
-                created=driver_created,
-            )
         
-        except psycopg2.Error as e:
-            connection.rollback()
-            raise e
     except DriverNotFound:
         raise DriverNotFound(driver_id)
     
