@@ -1,10 +1,6 @@
-from dataclasses import dataclass
-
 import psycopg2
+import logging
 import uuid
-
-import json
-from jsonschema import validate, ValidationError
 
 class DriverTimeNotFound(Exception):
     def __init__(self, *args: object) -> None:
@@ -71,11 +67,52 @@ def get_drivertime(
 
 def get_all_drivertimes(
         connection: psycopg2.extensions.connection, 
-        cursor: psycopg2.extensions.cursor
+        cursor: psycopg2.extensions.cursor,
+        sorted_by: str = None,
+        order: str = None,
+        limit: int = None,
+        driver_id: str = None,
+        convention_id: int = None
         ) -> dict:
     try:
-        sql_query = "SELECT * FROM drivertimes"
-        cursor.execute(sql_query)
+        def expand_sql_query(query ,sorted_by, order, limit) -> str:
+            if sorted_by is not None:
+                query += f" ORDER BY {sorted_by}"
+                if order is not None:
+                    query += f" {order}"
+            
+            if limit is not None:
+                query += f" LIMIT {limit}"
+
+            return query
+
+        if driver_id is None and convention_id is None:
+            sql_query = "SELECT * FROM drivertimes"
+
+            sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
+            cursor.execute(sql_query)
+        
+        elif driver_id is not None and convention_id is None:
+            sql_query = "SELECT * FROM drivertimes WHERE driver = %s"
+
+            sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
+            
+            cursor.execute(sql_query, (driver_id,))
+        
+        elif driver_id is None and convention_id is not None:
+            sql_query = "SELECT * FROM drivertimes WHERE convention = %s"
+
+            sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
+            
+            cursor.execute(sql_query, (convention_id,))
+
+        elif driver_id is not None and convention_id is not None:
+            sql_query = "SELECT * FROM drivertimes WHERE driver = %s AND convention = %s"
+
+            sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
+            
+            cursor.execute(sql_query, (driver_id, convention_id))
+
         drivertimes = []
 
         for driver_id, convention_id, drivertime_id, drivertime_sector1, drivertime_sector2, drivertime_sector3, drivertime_laptime in cursor.fetchall():
@@ -95,21 +132,68 @@ def get_all_drivertimes(
         connection.rollback()
         raise e
 
-    
-def delete_driver(
+def get_best_sectors(
         connection: psycopg2.extensions.connection,
         cursor: psycopg2.extensions.cursor,
-        driver_id: int
+        driver_id: str = None,
+        convention_id: int = None
+        ) -> dict:
+    try:
+        sql_query = """
+            SELECT 
+            MIN(sector1) AS best_sector1,
+            MIN(sector2) AS best_sector2,
+            MIN(sector3) AS best_sector3,
+            MIN(laptime) AS best_laptime
+            FROM drivertimes
+            """
+        if driver_id is None and convention_id is None:
+            cursor.execute(sql_query)
+
+        else:
+            if driver_id is not None and convention_id is None:
+                sql_query += " WHERE driver = %s"
+                cursor.execute(sql_query, (driver_id,))
+
+            elif driver_id is None and convention_id is not None:
+                sql_query += " WHERE convention = %s"
+                cursor.execute(sql_query, (convention_id,))
+            
+            else:
+                sql_query += " WHERE driver = %s AND convention = %s"
+                cursor.execute(sql_query, (driver_id, convention_id))
+            
+    
+        best_sector1, best_sector2, best_sector3, best_laptime = cursor.fetchone()
+        connection.commit()
+        return {
+            "best_sector1": best_sector1,
+            "best_sector2": best_sector2,
+            "best_sector3": best_sector3,
+            "best_laptime": best_laptime
+        }
+    
+    except psycopg2.Error as e:
+        connection.rollback()
+        raise e
+    
+    except Exception as e:
+        raise e
+
+def delete_drivertime(
+        connection: psycopg2.extensions.connection,
+        cursor: psycopg2.extensions.cursor,
+        drivertime_id: int
         ) -> None:
     
     try:
-        get_drivertime(connection, cursor, driver_id)
+        get_drivertime(connection, cursor, drivertime_id)
         try:
-            sql_query = "DELETE FROM drivers WHERE id = %s"
-            cursor.execute(sql_query, (driver_id,))
+            sql_query = "DELETE FROM drivertimes WHERE id = %s"
+            cursor.execute(sql_query, (drivertime_id,))
             connection.commit()
         except psycopg2.Error as e:
             connection.rollback()
             raise e
     except DriverTimeNotFound:
-        raise DriverTimeNotFound(driver_id)
+        raise DriverTimeNotFound(drivertime_id)

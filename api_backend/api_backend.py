@@ -38,17 +38,17 @@ class Backend:
                 raise TypeError(f"Expected {required_datatypes[key]} for {key} but got {type(value)}")
 
     # Driver Functions
-    def get_drivers(self):
+    def get_drivers(self, sorted_by: str = None, order: str = None, limit: int = None):
         logging.info("Get all drivers was called.")
-        return driver.get_all_drivers(self.conn, self.cursor_dict)
+        return driver.get_all_drivers(self.conn, self.cursor_dict, sorted_by=sorted_by, order=order, limit=limit)
 
     def get_driver(self, driver_id: str):
         logging.info(f"Get driver with id: {driver_id} was called.")
         return driver.get_driver(self.conn, self.cursor_dict, driver_id)
     
-    def post_driver(self, driver_name: str, driver_email: str = None):
+    def post_driver(self, driver_name: str, driver_id: str = None, driver_email: str = None) -> dict:
         logging.info(f"Post driver with name: {driver_name} was called.")
-        return driver.post_driver(self.conn, self.cursor, driver_name, driver_email)
+        return driver.post_driver(self.conn, self.cursor, driver_name, driver_id, driver_email)
     
     def update_driver(self, driver_id: str, values: dict):
         logging.info(f"Update driver with id: {driver_id} was called.")
@@ -59,10 +59,21 @@ class Backend:
         return driver.delete_driver(self.conn, self.cursor, driver_id)
 
     # Drivertime Functions
-    def get_drivertimes(self):
+    def get_drivertimes(self, sorted_by: str = None, order: str = None, limit: int = None, driver_id: str = None, convention_id: int = None):
         logging.info("Get all drivertimes was called.")
-        return drivertime.get_drivertimes(self.conn, self.cursor_dict)
+        return drivertime.get_all_drivertimes(self.conn, self.cursor_dict, sorted_by=sorted_by, order=order, limit=limit, driver_id=driver_id)
     
+    
+    def get_drivertimes_best_sectors(self, driver_id: str, convention_id: int):
+        if driver_id is not None:
+            logging.info(f"Get best sectors for driver with id: {driver_id} was called.")
+        elif convention_id is not None:
+            logging.info(f"Get best sectors for convention with id: {convention_id} was called.")
+        else:
+            logging.info(f"Get best overall sectors for all drivers was called.")
+
+        return drivertime.get_best_sectors(self.conn, self.cursor_dict, driver_id, convention_id)
+
     def get_drivertime(self, drivertime_id: int):
         logging.info(f"Get drivertime with id: {drivertime_id} was called.")
         return drivertime.get_drivertime(self.conn, self.cursor_dict, drivertime_id)
@@ -76,9 +87,9 @@ class Backend:
         return drivertime.delete_drivertime(self.conn, self.cursor, drivertime_id)
 
     # Convention Functions
-    def get_conventions(self):
+    def get_conventions(self, sorted_by: str = None, order: str = None, limit: int = None):
         logging.info("Get all conventions was called.")
-        return convention.get_all_conventions(self.conn, self.cursor_dict)
+        return convention.get_all_conventions(self.conn, self.cursor_dict, sorted_by=sorted_by, order=order, limit=limit)
     
     def get_convention(self, convention_id: int):
         logging.info(f"Get convention with id: {convention_id} was called.")
@@ -86,7 +97,7 @@ class Backend:
     
     def post_convention(self, convention_name: str, convention_location: str, convention_date: date):
         logging.info(f"Post convention with name: {convention_name} was called.")
-        return convention.post_convention(self.conn, self.cursor, convention_name, convention_location)
+        return convention.post_convention(self.conn, self.cursor, convention_name, convention_location, convention_date)
     
     def delete_convention(self, convention_id: int):
         logging.info(f"Delete convention with id: {convention_id} was called.")
@@ -94,7 +105,7 @@ class Backend:
     
     def update_convention(self, convention_id: int, values: dict):
         logging.info(f"Update convention with id: {convention_id} was called.")
-        return convention.update_convention_name(self.conn, self.cursor, convention_id, values)
+        return convention.update_convention(self.conn, self.cursor, convention_id, values)
     
     
     def close(self):
