@@ -111,7 +111,7 @@ def drivers_post_driver(req: func.HttpRequest) -> func.HttpResponse:
     try:
         result = backend.post_driver(name, driver_id, email)
         return func.HttpResponse(
-            f"Driver with name: {name} created successfully.",
+            json.dumps(result),
             status_code=201
             )
     
@@ -135,7 +135,10 @@ def drivers_update_driver(req: func.HttpRequest) -> func.HttpResponse:
         if new_email:
             values["email"] = new_email
         result = backend.update_driver(driver_id=driver_id, values=values)
-        return func.HttpResponse(f"Driver with id: {driver_id} updated with data {result} successfully.")
+        return func.HttpResponse(
+            json.dumps(result),
+            status_code=200
+            )
     
     except DriverNotFound as e:
         return func.HttpResponse(
@@ -174,7 +177,7 @@ def drivers_delete_driver(req: func.HttpRequest) -> func.HttpResponse:
             )
         result = backend.delete_driver(driver_id)
         return func.HttpResponse(
-            f"Driver with id: {driver_id} deleted successfully.",
+            json.dumps(result),
             status_code=200
             )
     except DriverNotFound as e:
@@ -269,7 +272,7 @@ def conventions_create_convention(req: func.HttpRequest) -> func.HttpResponse:
         try:
             result = backend.post_convention(name, location, date)
             return func.HttpResponse(
-                f"Convention with name: {name} created successfully.",
+                json.dumps(result),
                 status_code=201
                 )
         
@@ -312,7 +315,7 @@ def conventions_update_convention(req: func.HttpRequest) -> func.HttpResponse:
                     )
         result = backend.update_convention(convention_id=convention_id, values=values)
         return func.HttpResponse(
-            f"Convention with id: {convention_id} updated with data {values} successfully.",
+            json.dumps(result),
             status_code=200
         )
     
@@ -335,7 +338,7 @@ def conventions_delete_convention(req: func.HttpRequest) -> func.HttpResponse:
             )
         result = backend.delete_convention(convention_id)
         return func.HttpResponse(
-            f"Convention with id: {convention_id} deleted successfully.",
+            json.dumps(result),
             status_code=200
             )
     except ConventionNotFound as e:
@@ -453,7 +456,7 @@ def drivertimes_create_drivertime(req: func.HttpRequest) -> func.HttpResponse:
     try:
         result = backend.post_drivertime(driver_id, convention_id, sector1, sector2, sector3, laptime)
         return func.HttpResponse(
-            f"Drivertime with driver_id: {driver_id} created successfully.",
+            json.dumps(result),
             status_code=201
             )
     
@@ -475,7 +478,7 @@ def drivertimes_delete_drivertime(req: func.HttpRequest) -> func.HttpResponse:
     try:
         result = backend.delete_drivertime(drivertime_id)
         return func.HttpResponse(
-            f"Drivertime with id: {drivertime_id} deleted successfully.",
+            json.dumps(result),
             status_code=200
             )
     except DriverTimeNotFound as e:

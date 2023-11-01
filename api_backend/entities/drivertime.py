@@ -115,7 +115,7 @@ def get_all_drivertimes(
 
         drivertimes = []
 
-        for driver_id, convention_id, drivertime_id, drivertime_sector1, drivertime_sector2, drivertime_sector3, drivertime_laptime in cursor.fetchall():
+        for drivertime_id, drivertime_sector1, drivertime_sector2, drivertime_sector3, drivertime_laptime, driver_id, convention_id in cursor.fetchall():
             drivertimes.append({
             "drivertime_id": drivertime_id,
             "sector1": drivertime_sector1,
@@ -167,10 +167,10 @@ def get_best_sectors(
         best_sector1, best_sector2, best_sector3, best_laptime = cursor.fetchone()
         connection.commit()
         return {
-            "best_sector1": best_sector1,
-            "best_sector2": best_sector2,
-            "best_sector3": best_sector3,
-            "best_laptime": best_laptime
+            "sector_1_best_time": best_sector1,
+            "sector_2_best_time": best_sector2,
+            "sector_3_best_time": best_sector3,
+            "lap_best_time": best_laptime
         }
     
     except psycopg2.Error as e:
