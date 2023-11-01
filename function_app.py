@@ -35,13 +35,14 @@ def drivers_get_all(req: func.HttpRequest) -> func.HttpResponse:
         sorted_by = req.params.get("sorted_by")
         order = req.params.get("order")
         limit = req.params.get("limit")
-        try:
-            limit = int(limit)
-        except TypeError:
-            return func.HttpResponse(
-                "Invalid limit. Expected integer.",
-                status_code=400
-            )
+        if limit:
+            try:
+                limit = int(limit)
+            except TypeError:
+                return func.HttpResponse(
+                    "Invalid limit. Expected integer.",
+                    status_code=400
+                )
         result = json.dumps(backend.get_drivers(sorted_by=sorted_by, order= order, limit=limit))
         logging.info(result)
         return func.HttpResponse(
