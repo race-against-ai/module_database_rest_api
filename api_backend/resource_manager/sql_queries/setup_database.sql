@@ -26,5 +26,15 @@ CREATE TABLE drivertimes (
     convention INTEGER REFERENCES conventions(id)
 );
 
+INSERT INTO drivers (id, name, email) 
+VALUES ('4823662a-29c5-47d7-bdba-68baa2825990', 'Dummy', 'example@email.test');
+
+INSERT INTO conventions (name, location, date) 
+VALUES ('Dummy Convention', 'Dummy Location', '2020-01-01');
+
+INSERT INTO drivertimes (sector1, sector2, sector3, laptime, driver, convention)
+VALUES (3000, 3000, 3000, 9000, '4823662a-29c5-47d7-bdba-68baa2825990', 1);
+
+
 
 
