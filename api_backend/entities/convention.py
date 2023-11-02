@@ -42,7 +42,7 @@ def post_convention(
         connection.commit()
 
         return {
-            "convention_id": convention_id,
+            "id": convention_id,
             "name": convention_name,
             "location": convention_location,
             "created": convention_date.strftime("%Y-%m-%d"),
@@ -72,7 +72,7 @@ def get_convention(
             if convention_created is not None:
                 convention_created = convention_created.strftime("%Y-%m-%d")
             return {
-                "convention_id": convention_id,
+                "id": convention_id,
                 "name": convention_name,
                 "location": convention_location,
                 "created": convention_created,
@@ -87,7 +87,7 @@ def get_all_conventions(
         sorted_by: str = None,
         order: str = None,
         limit: int = None
-        ) -> dict:
+        ) -> list:
     try:
         sql_query = "SELECT * FROM conventions"
 
@@ -105,7 +105,7 @@ def get_all_conventions(
             if convention_created is not None:
                 convention_created = convention_created.strftime("%Y-%m-%d")
             conventions.append({
-                "convention_id": convention_id,
+                "id": convention_id,
                 "name": convention_name,
                 "location": convention_location,
                 "created": convention_created,
@@ -196,6 +196,4 @@ def delete_convention(
         
     except ConventionNotFound as e:
         raise e(convention_id)
-
-    except Exception as e:
-        raise e
+      

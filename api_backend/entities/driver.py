@@ -40,10 +40,10 @@ def post_driver(
         connection.commit()
 
         return {
-            "driver_id": driver_id,
+            "id": driver_id,
             "name": driver_name,
             "email": driver_email,
-            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+            "created": driver_created.strftime("%Y-%m-%d-%H-%M-%S"),
         }
     
 
@@ -69,10 +69,10 @@ def get_driver(
             connection.commit()
 
             return {
-            "driver_id": driver_id,
+            "id": driver_id,
             "name": driver_name,
             "email": driver_email,
-            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+            "created": driver_created.strftime("%Y-%m-%d-%H-%M-%S"),
         }
     
     except psycopg2.Error as e:
@@ -103,10 +103,10 @@ def get_all_drivers(
         drivers = []
         for driver_id, driver_name, driver_email, driver_created in cursor.fetchall():
             drivers.append({
-            "driver_id": driver_id,
+            "id": driver_id,
             "name": driver_name,
             "email": driver_email,
-            "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+            "created": driver_created.strftime("%Y-%m-%d-%H-%M-%S"),
         })
         connection.commit()
         return drivers
@@ -159,10 +159,10 @@ def update_driver(
             connection.commit()
 
             return {
-                "driver_id": driver_id,
+                "id": driver_id,
                 "name": driver_name,
                 "email": driver_email,
-                "created": driver_created.strftime("%Y-%m-%d-%h-%m-%s"),
+                "created": driver_created.strftime("%Y-%m-%d-%H-%M-%S"),
             }
         
         except psycopg2.Error as e:
