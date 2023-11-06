@@ -50,9 +50,9 @@ class Backend:
         logging.info(f"Post driver with name: {driver_name} was called.")
         return driver.post_driver(self.conn, self.cursor, driver_name, driver_id, driver_email)
     
-    def update_driver(self, driver_id: str, values: dict):
+    def put_driver(self, driver_id: str, values: dict):
         logging.info(f"Update driver with id: {driver_id} was called.")
-        return driver.update_driver(self.conn, self.cursor, driver_id=driver_id, values=values)
+        return driver.put_driver(self.conn, self.cursor, driver_id=driver_id, values=values)
     
     def delete_driver(self, driver_id: str):
         logging.info(f"Delete driver with id: {driver_id} was called.")
@@ -105,7 +105,7 @@ class Backend:
     
     def update_convention(self, convention_id: int, values: dict):
         logging.info(f"Update convention with id: {convention_id} was called.")
-        return convention.update_convention(self.conn, self.cursor, convention_id, values)
+        return convention.post_convention(self.conn, self.cursor, convention_id, values)
     
     
     def close(self):

@@ -14,12 +14,12 @@ def post_convention(
         convention_location: str = None,
         convetion_date: date = None
         ) -> dict:
+    """Post a new convention to the database."""
     try:    
-
         sql_query = ""
 
         if convention_name is None:
-            raise ValueError("No valid values to update.")
+            raise ValueError("No Convention name given.")
 
         elif convention_location is None and convention_date is None:
             sql_query = "INSERT INTO conventions (name) VALUES (%s) RETURNING *"
@@ -52,15 +52,13 @@ def post_convention(
     except psycopg2.Error as e:
         connection.rollback()
         raise e
-
-    except Exception as e:
-        raise e
     
 def get_convention(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         convention_id: int
         ) -> dict:
+    """Get a convention from the database."""
     try:
         sql_query = "SELECT * FROM conventions WHERE id = %s"
         cursor.execute(sql_query, (convention_id,))
@@ -88,6 +86,7 @@ def get_all_conventions(
         order: str = None,
         limit: int = None
         ) -> list:
+    """Get all conventions from the database."""
     try:
         sql_query = "SELECT * FROM conventions"
 
@@ -116,12 +115,13 @@ def get_all_conventions(
         connection.rollback()
         raise e
 
-def update_convention(
+def post_convention(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         convention_id: int,
         values: dict
         ) -> dict:
+    """Update a convention in the database."""
     if not values:
         raise ValueError("No valid values to update.")
 

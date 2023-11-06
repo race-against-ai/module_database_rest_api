@@ -17,7 +17,8 @@ def post_drivertime(
         drivertime_sector3: float,
         drivertime_laptime: float
         ) -> dict:
-    try:    
+    """Post a new drivertime to the database."""
+    try:
         sql_query = "INSERT INTO drivertimes (driver, convention, sector1, sector2, sector3, laptime) VALUES (%s, %s, %s, %s, %s, %s) RETURNING *"
         cursor.execute(sql_query, (driver_id, convention_id, drivertime_sector1, drivertime_sector2, drivertime_sector3, drivertime_laptime))
 
@@ -44,6 +45,7 @@ def get_drivertime(
         cursor: psycopg2.extensions.cursor,
         drivertime_id: int
         ) -> dict:
+    """Get a drivertime from the database."""
     try:
         sql_query = "SELECT * FROM drivertimes WHERE id = %s"
         cursor.execute(sql_query, (drivertime_id,))
@@ -73,7 +75,8 @@ def get_all_drivertimes(
         limit: int = None,
         driver_id: str = None,
         convention_id: int = None
-        ) -> dict:
+        ) -> list:
+    """Get all drivertimes from the database."""
     try:
         def expand_sql_query(query ,sorted_by, order, limit) -> str:
             if sorted_by is not None:
@@ -96,21 +99,18 @@ def get_all_drivertimes(
             sql_query = "SELECT * FROM drivertimes WHERE driver = %s"
 
             sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
-            
             cursor.execute(sql_query, (driver_id,))
         
         elif driver_id is None and convention_id is not None:
             sql_query = "SELECT * FROM drivertimes WHERE convention = %s"
 
             sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
-            
             cursor.execute(sql_query, (convention_id,))
 
         elif driver_id is not None and convention_id is not None:
             sql_query = "SELECT * FROM drivertimes WHERE driver = %s AND convention = %s"
 
             sql_query = expand_sql_query(sql_query, sorted_by, order, limit)
-            
             cursor.execute(sql_query, (driver_id, convention_id))
 
         drivertimes = []
@@ -138,6 +138,7 @@ def get_best_sectors(
         driver_id: str = None,
         convention_id: int = None
         ) -> dict:
+    """Get the best sectors for a driver or convention."""
     try:
         sql_query = """
             SELECT 
@@ -176,16 +177,13 @@ def get_best_sectors(
     except psycopg2.Error as e:
         connection.rollback()
         raise e
-    
-    except Exception as e:
-        raise e
 
 def delete_drivertime(
         connection: psycopg2.extensions.connection,
         cursor: psycopg2.extensions.cursor,
         drivertime_id: int
         ) -> None:
-    
+    """Delete a drivertime from the database."""
     try:
         get_drivertime(connection, cursor, drivertime_id)
         try:

@@ -1,10 +1,10 @@
 import psycopg2
 
+
 class DriverNotFound(Exception):
     def __init__(self, driver_id: str) -> None:
         self.id = driver_id
         super().__init__(f"Driver not found with ID: {driver_id}")
-
 
 
 def post_driver(
@@ -14,11 +14,12 @@ def post_driver(
         driver_id: str = None,
         driver_email: str = None
         ) -> dict:
+    """Post a new driver to the database."""
     try:    
-
+        # -- Check if values are valid and create SQL Query according to it --
         sql_query = ""
         if driver_name is None:
-            raise ValueError("No valid values to update.")
+            raise ValueError("No valid values to post.")
         
         elif driver_id is None and driver_email is None:
             sql_query = "INSERT INTO drivers (name) VALUES (%s) RETURNING *"
@@ -56,7 +57,9 @@ def get_driver(
         cursor: psycopg2.extensions.cursor,
         driver_id: int
         ) -> dict:
+    """Get a driver from the database."""
     try:
+        # -- Check if driver exists --
         sql_query = "SELECT * FROM drivers WHERE id = %s"
         cursor.execute(sql_query, (driver_id,))
         try:
@@ -86,9 +89,12 @@ def get_all_drivers(
         order: str = None,
         limit: int = None
         ) -> list:
+    """Get all drivers from the database."""
     try: 
+        # -- Create SQL Query --
         sql_query = "SELECT * FROM drivers"
 
+        # -- Add sorting, ordering and limiting --
         if sorted_by is not None:
             sql_query += f" ORDER BY {sorted_by}"
 
@@ -119,18 +125,23 @@ def get_all_drivers(
         connection.rollback()
         raise e
 
-def update_driver(
+def put_driver(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         driver_id: str,
         values: dict
         ) -> dict:
+    """Update a driver in the database."""
+    # -- Check if values are given --
     if not values:
-        raise ValueError("No valid values to update.")
+        raise ValueError("No Values given")
     
     try:
+        # -- Check if driver exists --
         get_driver(connection, cursor, driver_id)
+        # -- Create Key list for given Values --
         key_list = list(values.keys())
+        # -- Create SQL Query and adapt it to given Values--
         try:
             if "email" in key_list and "name" in key_list:
                 driver_email = values["email"]
@@ -172,26 +183,26 @@ def update_driver(
     except DriverNotFound:
         raise DriverNotFound(driver_id)
     
-
 def delete_driver(
         connection: psycopg2.extensions.connection, 
         cursor: psycopg2.extensions.cursor,
         driver_id: int
         ) -> str:
-        try:
-            get_driver(connection, cursor, driver_id)
-            try: 
-                sql_query = "DELETE FROM drivers WHERE id = %s RETURNING *"
-                cursor.execute(sql_query, (driver_id,))
-                connection.commit()
+    """Delete a driver from the database."""
+    try:
+        get_driver(connection, cursor, driver_id)
+        try: 
+            sql_query = "DELETE FROM drivers WHERE id = %s RETURNING *"
+            cursor.execute(sql_query, (driver_id,))
+            connection.commit()
 
-                return f'Driver deleted with id: {driver_id}'
-            except psycopg2.Error as e:
-                connection.rollback()
-                raise e
-        
-        except DriverNotFound:
-            raise DriverNotFound(driver_id)
+            return f'Driver deleted with id: {driver_id}'
+        except psycopg2.Error as e:
+            connection.rollback()
+            raise e
+    
+    except DriverNotFound:
+        raise DriverNotFound(driver_id)
         
 
 
