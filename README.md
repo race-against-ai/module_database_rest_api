@@ -1,210 +1,220 @@
-# RAAI Database Rest API
-## Documentation
+# Database REST API Module 
 
-Params marked with a * are optional 
+The RAAI Database REST API provides endpoints for managing and interacting with driver data, drivertimes, and conventions in the database. This API allows for operations such as retrieving, creating, updating, and deleting records. It is designed to support applications that require structured and efficient management of racing-related data.  
 
----
+## Overview  
 
-## Driver
-### Get Drivers
+- **Driver Management**: Retrieve, create, update, and delete drivers in the database.  
+- **Drivertime Management**: Handle drivetime records, including best sector times and lap times.  
+- **Convention Management**: Manage conventions with details like name, location, and date.  
+
+The following sections detail the available endpoints, their behavior, and the query parameters that can be used to customize requests.  
+
+<details>  
+ <summary>
+  <h2>Documentation</h2>
+ </summary>  
+
+## Driver  
+
+### Get Drivers  
 
 ```
 /api/drivers
-```
-A successful GET request will have a **200 ok** status and returns the Drivers from the Database
-in a Json Format
+```  
 
-Query Params can help in managing received Data with sorting them by a specified value, having it Descending or Ascending and limit the amount of results
+A successful GET request will have a **200 OK** status and return drivers from the database in JSON format.  
 
-#### Query Params
- - sorted_by*:      sort the received values : string
- - order*:          asc or desc for result order : string
- - limit*:          limit the amount of received Data : int
+Query parameters can help manage the received data by sorting it by a specified value, arranging it in descending or ascending order, and limiting the number of results.  
 
-
-### GET Driver
-```
-/api/driver
-```
-A successful GET request will have a **200 ok** status and returns the Driver from the Database
-in a Json Format
+#### Query Params  
+- **sorted_by***: Sort the received values (type: string).  
+- **order***: Specify `asc` or `desc` for result order (type: string).  
+- **limit***: Limit the number of received data entries (type: int).  
 
 
-#### Query Params
+### Get Driver  
 
- - id:              The UUID of the wanted driver: string(UUID)
-
-### POST
 ```
 /api/driver
-```
-A succesfull POST request will have a **201 created** status and returns the created Driver
-in a Json format
+```  
 
-#### Query Params
+A successful GET request will have a **200 OK** status and return a specific driver from the database in JSON format.  
 
- - name:            Name of the new driver: string
- - id*:             Hard Input for the ID, used for transfering from Local to Online Database: string(UUID)
- - email*:          Email Address of the Driver: string
+#### Query Params  
+- **id**: The UUID of the requested driver (type: string, UUID).  
 
-### PUT Driver
-```
-/api/driver
-```
-A succesfull PUT request will have a **200 ok** status and returns the changed Driver 
-in a Json format
 
-#### Query Params
+### Create Driver (POST)  
 
- - id:              The ID of the Driver: string(UUID)
- - name:            The new Name of the Driver: string
- - email:           The new Email of the Driver: string
-
-### DEL Driver
 ```
 /api/driver
+```  
+
+A successful POST request will have a **201 Created** status and return the created driver in JSON format.  
+
+#### Query Params  
+- **name**: Name of the new driver (type: string).  
+- **id***: Optional hard input for the ID, useful for transferring data from local to online database (type: string, UUID).  
+- **email***: Optional email address of the driver (type: string).  
+
+
+### Update Driver (PUT)  
+
 ```
-A succesfull DEL request will have a **200 ok** status and returns a String with the deleted Driver ID
+/api/driver
+```  
 
-#### Query Params
+A successful PUT request will have a **200 OK** status and return the updated driver in JSON format.  
 
- - id:              The ID of the Driver: string(UUID)
-
-
----
-
-## Drivertime
+#### Query Params  
+- **id**: The ID of the driver (type: string, UUID).  
+- **name**: The new name of the driver (type: string).  
+- **email**: The new email of the driver (type: string).  
 
 
-### Get Drivertimes
+### Delete Driver  
+
+```
+/api/driver
+```  
+
+A successful DELETE request will have a **200 OK** status and return a string containing the deleted driver's ID.  
+
+#### Query Params  
+- **id**: The ID of the driver (type: string, UUID).  
+
+
+## Drivertime  
+
+### Get Drivertimes  
+
 ```
 /api/drivertimes
-```
+```  
 
-A successful GET request from /api/drivers will have a **200 ok** status and returns the Drivertimes from the Database
-in a Json Format
+A successful GET request will have a **200 OK** status and return drivertimes from the database in JSON format.  
 
-Query Params can help in managing received Data with sorting them by a specified value, having it Descending or Ascending and limit the amount of results
-Also receive Drivertimes for a specific Driver or Convention
+Query parameters can manage received data by sorting, limiting results, or filtering by driver or convention.  
 
-##### Query Params
- - sorted_by*:      sort the received values: string
- - order*:          asc or desc for result order: string
- - limit*:          limit the amount of received Data: int
- - driver_id*:      ID the Driver: string(UUID)
- - convention_id*:  ID of the Convention: int
+#### Query Params  
+- **sorted_by***: Sort the received values (type: string).  
+- **order***: Specify `asc` or `desc` for result order (type: string).  
+- **limit***: Limit the number of received data entries (type: int).  
+- **driver_id***: ID of the driver (type: string, UUID).  
+- **convention_id***: ID of the convention (type: int).  
 
-### GET Best Sectors
+
+### Get Best Sectors  
+
 ```
 /api/drivertimes/bestsectors
-```
-A successful GET request from /api/drivers will have a **200 ok** status and returns the Best Sectors including Laptime 
-from the Database in a Json Format
+```  
 
-Query Params can help in managing received Data by receiving the best Sectors for a Driver and or Convention
+A successful GET request will have a **200 OK** status and return best sector times, including lap times, in JSON format.  
 
-##### Query Params
-
- - driver_id*:      ID the Driver: string(UUID)
- - convention_id*:  ID of the Convention: int
+#### Query Params  
+- **driver_id***: ID of the driver (type: string, UUID).  
+- **convention_id***: ID of the convention (type: int).  
 
 
+### Create Drivertime (POST)  
 
-#### GET
 ```
 /api/drivertime
-```
-A successful GET request will have a **200 ok** status and returns the Drivertime from the Database
-in a Json Format
+```  
+
+A successful POST request will have a **201 Created** status and return the created drivertime in JSON format.  
+
+#### Query Params  
+- **sector1**: Time for the first sector (type: float).  
+- **sector2**: Time for the second sector (type: float).  
+- **sector3**: Time for the third sector (type: float).  
+- **laptime**: Time for the completed lap (type: float).  
+- **driver_id***: Optional ID of the driver (type: string, UUID).  
+- **convention_id***: Optional ID of the convention (type: int).  
 
 
-##### Query Params
+### Delete Drivertime  
 
- - id:              ID of the Drivertime: int
-
-#### POST
-```
-/api/drivertime
-```
-A succesfull POST request will have a **201 created** status and returns the created Driver
-in a Json format
-
-##### Query Params
-
- - sector1:         Time for the first Sector: float
- - sector2:         Time for the second Sector: float
- - sector3:         Time for the third Sector: float
- - laptime:         Time for the finished Lap: float
- - driver_id*:      ID of the Driver: string(UUID)
- - convention_id*:  ID of the Convention
-
-#### DEL
 ```
 /api/drivertime
-```
-A succesfull DEL request will have a **200 ok** status and returns a String with the deleted Drivertime ID
+```  
 
-##### Query Params
+A successful DELETE request will have a **200 OK** status and return a string containing the deleted drivertime's ID.  
 
- - id:              The ID of the Drivertime
+#### Query Params  
+- **id**: ID of the drivertime (type: int).  
 
----
 
-## Convention
+## Convention  
 
-### GET Conventions
+### Get Conventions  
 
 ```
 /api/conventions
-```
-A successful GET request will have a **200 ok** status and returns the Conventions from the Database
-in a Json Format
+```  
 
-Query Params can help in managing received Data with sorting them by a specified value, having it Descending or Ascending and limit the amount of results
+A successful GET request will have a **200 OK** status and return conventions from the database in JSON format.  
 
-#### Query Params
- - sorted_by*:      sort the received values: string
- - order*:          asc or desc for result order: string
- - limit*:          limit the amount of received Data: int
+Query parameters can help manage received data by sorting, limiting results, or specifying order.  
 
+#### Query Params  
+- **sorted_by***: Sort the received values (type: string).  
+- **order***: Specify `asc` or `desc` for result order (type: string).  
+- **limit***: Limit the number of received data entries (type: int).  
+ 
 
-### GET Convention
-```
-/api/convention
-```
-A successful GET request will have a **200 ok** status and returns the requested Convention in a Json Format
+### Get Convention  
 
-#### Query Params
- - id:              ID of the Convention: int
-
-### POST Convention
 ```
 /api/convention
-``` 
-A successful POST request will have a **201 created** status and returns the created Convention in a Json Format
+```  
 
-#### Query Params
- - name:             name of the Convention: string
- - location*:        location of the Convention: string
- - date*:            date the Convention was held at
+A successful GET request will have a **200 OK** status and return the requested convention in JSON format.  
 
-### PUT Convention
+#### Query Params  
+- **id**: ID of the convention (type: int).  
+
+
+### Create Convention (POST)  
+
 ```
 /api/convention
-```
-A successful PUT request will have a **200 ok** status and returns the changed Convention in a Json Format
+```  
 
-#### Query Params
- - id:              ID of the Convention
- - name*:           new name of the Convention
- - location*:       new location of the Convention
- - date*:           new date of the Convention
+A successful POST request will have a **201 Created** status and return the created convention in JSON format.  
 
-### DEL Convention
+#### Query Params  
+- **name**: Name of the convention (type: string).  
+- **location***: Optional location of the convention (type: string).  
+- **date***: Optional date of the convention (type: string).  
+
+
+### Update Convention (PUT)  
+
 ```
 /api/convention
-```
-A successful DEL request will have a **200 ok** status and returns a string with the deleted Convention id
+```  
 
-#### Query Params
- - id:              ID of the Convention
+A successful PUT request will have a **200 OK** status and return the updated convention in JSON format.  
+
+#### Query Params  
+- **id**: ID of the convention (type: int).  
+- **name***: New name of the convention (type: string).  
+- **location***: New location of the convention (type: string).  
+- **date***: New date of the convention (type: string).  
+
+
+### Delete Convention  
+
+```
+/api/convention
+```  
+
+A successful DELETE request will have a **200 OK** status and return a string containing the deleted convention's ID.  
+
+#### Query Params  
+- **id**: ID of the convention (type: int).  
+
+</details> 
